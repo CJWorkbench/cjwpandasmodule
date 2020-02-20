@@ -1,4 +1,5 @@
 from cjwmodule.i18n import I18nMessage
+
 from cjwpandasmodule import i18n
 
 
