@@ -1,4 +1,5 @@
-v0.0.1 - 2020-02-20
--------------------
+v0.0.2 - 2021-01-22
+~~~~~~~~~~~~~~~~~~~
 
-* Initial release.
+* `cjwpandasmodule.validate`: validate that a pd.DataFrame is
+  Workbench-compatible.

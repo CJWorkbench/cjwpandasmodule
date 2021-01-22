@@ -1,21 +1,26 @@
-sudo: false
 language: python
 python:
 - '3.8'
-install:
-- pip install black pyflakes isort
-- pip install -e .[tests,maintenance]
-- pip freeze
-script:
-- pyflakes .
-- black --check .
-- isort --check-only --diff --recursive cjwpandasmodule tests
-- pytest --verbose
-- ./setup.py extract_messages --check
-deploy:
-  provider: pypi
-  user: __token__
-  password:
-    secure: Of328K+Whm/K8JG4PuX1oKyIdtES/q4wYyrmsdAX0d3wYYyEVpPN/bdB5gYrvAH4B9XUgDYkb3OyXb4pd4rJfH1lsbzHKQemikjqEuVkX/JPef/FUkWm7AsHPrKBPVslkk1ldugwlAt042EqrotGaarFb+Kqbr2691pQXoGciLeMDmJh3/UQbh/QTIDZBrsd1+SKs0eXqPU/0NbQTmHXZGC/YrrdYm/20n0YXlJN8nLxQ2GPH9JvHEtZQPIl8MRsz3e/g2WsABVaGsPFDt7a77L9MxDx+PBxlwR2CaTaqORWpBRm/7bComWez3R2g93hcobMcBSOURLBgffIg+3nV8OHG+fXwBqqV/vA/Q847JppdorKGFj0Db+93vRRYAIC8euiEyIYFYcVMDRQsmkUmStVKjZcRieMWi0aq+T/8tMtZcViJnup915cQYBsjYvYhsEtQq4JsHCzjKkPVfZT1y4CXTHyYeJN5+dWq3Syqv4pKmTrwrlg+cyV46jsDCqznVvMzORBLrJr3FpgJpDDke3tdnGTMY1Eo+cKEHJxOKWHtPKT4jgGYT05BdY7e9JfM53F6SqoooDbcxTQGgzBpiruAUFp8rEGUHglTy2tk6hJ82PkpgGI//MgrKSUNZTsVASsrei8qah3OcvweC0RynUM2ppxSSO/mbSx4iJXsBg=
-  on:
-    tags: true
+before_install: python -m pip install poetry tox-travis
+install: poetry install -v
+script: tox
+jobs:
+  include:
+    - stage: deploy
+      python: "3.8"
+      before_install: python -m pip install poetry
+      install: skip
+      script: skip
+      before_deploy:
+        - poetry version $(git describe --tags --exact-match --match="v*.*.*" | cut -b2-)  # fallback "" means, "0.0.0"
+        - poetry config pypi-token.pypi $PYPI_TOKEN
+      deploy:
+        skip_cleanup: true  # so "poetry version" stays
+        provider: script
+        script: poetry publish --build
+        on:
+          tags: true
+
+env:
+  global:
+    - secure: "VIFkyoPhDkYAc8pNvOavctV+vLkLlq1FzmmD1ZGgEC8HVgQUFjIf3WTzOb+Q6QWWIGIcR8xFeBhyOoFbkpleSImvS1DxBBtWyAo6mDKL3OUeUTKOJWFXYtO8W0DWDf+jzG8npBL47Lp4Ye2wgsQ04BZPZAHw+zHZafEK/xkYCChACAzCZn7m4FuRZ12SQ9M+jaXKJb7GkYh7AxFPWk8GNlcvBngGP4WnuZLLcra/XFSsZ5OIPg7SgfaqMWM8R7y3qjKKmNUXwGwn/vMhFSeRgOHkHfghG0Fk2jJ1noY9CoMZFMlHu4x3wplzKHVd777GsFM67T4ydcKqyqpVUj16QbdHtIoWZIJII2ExyF3zm539RlaXBOXHhCs1XlHq4lb4voe7Ya95+Jq5BHLhq+1O000X+w5uMVXUHSgjXIzibYzNMh6YhYNM4F+igCsFvnmJpZkl18nOSZfcsR25sfzHtBGC956vqJYEeHW36ggzjRhMloU1kei7fNipeyA1rWlt+ftO782i+iZu7PlcnLlyguU9BoNbTKDDeEa+WJp2aQwYbRDEiipu33VvLtSGHyJN6I/Pj6FlFbgllwze6vmLlnIq4NbnTxaRVRQk6NSfbl4doSonTV+Uzojc0Nqn5+kU4BC9rWtTAlu1dACU3eSBFZryL2rOm4QqwXuOCBC53V8=" # PYPI_TOKEN=...
