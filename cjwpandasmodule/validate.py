@@ -52,6 +52,15 @@ def validate_series(series: pd.Series) -> None:
         return
     elif is_datetime64_dtype(dtype):  # rejects datetime64ns
         return
+    elif pd.PeriodDtype(freq="D") == dtype:
+        invalid = series.lt("0001-01-01") | series.gt("9999-12-31")
+        if invalid.any():
+            idx = series[invalid].index[0]
+            raise ValueError(
+                "invalid value %r in column %r, row %r (date must be between 0001-01-01 and 9999-12-31)"
+                % (series[idx], series.name, idx)
+            )
+        return
     elif dtype == object:
         nonstr = series[~series.isnull()].map(type) != str
         if nonstr.any():

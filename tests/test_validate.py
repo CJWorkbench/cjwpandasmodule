@@ -1,3 +1,5 @@
+from datetime import date
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -65,6 +67,53 @@ def test_numpy_dtype():
     # Numpy dtypes should be treated just like pandas dtypes.
     dataframe = pd.DataFrame({"A": np.array([1, 2, 3])})
     validate_dataframe(dataframe)
+
+
+def test_period_dtype():
+    dataframe = pd.DataFrame(
+        {
+            "A": pd.PeriodIndex(
+                [date(2020, 1, 1), date(2021, 3, 9), None],
+                freq="D",
+            )
+        }
+    )
+    validate_dataframe(dataframe)
+
+
+def test_period_range_min_year_0001():
+    # -0001-12-31
+    dataframe = pd.DataFrame({"A": pd.PeriodIndex(["0001-01-01"], freq="D") - 1})
+    with pytest.raises(
+        ValueError,
+        match=r"invalid value Period\('0-12-31', 'D'\) in column 'A', row 0 \(date must be between 0001-01-01 and 9999-12-31\)",
+    ):
+        validate_dataframe(dataframe)
+
+
+def test_period_range_min_year_9999():
+    # -0001-12-31
+    dataframe = pd.DataFrame({"A": pd.PeriodIndex(["9999-12-31"], freq="D") + 1})
+    with pytest.raises(
+        ValueError,
+        match=r"invalid value Period\('10000-01-01', 'D'\) in column 'A', row 0 \(date must be between 0001-01-01 and 9999-12-31\)",
+    ):
+        validate_dataframe(dataframe)
+
+
+def test_period_dtype_freq_not_D():
+    dataframe = pd.DataFrame(
+        {
+            "A": pd.PeriodIndex(
+                [date(2020, 1, 1), date(2021, 3, 1), None],
+                freq="M",
+            )
+        }
+    )
+    with pytest.raises(
+        ValueError, match=r"unsupported dtype period\[M\] in column 'A'"
+    ):
+        validate_dataframe(dataframe)
 
 
 def test_unsupported_dtype():
