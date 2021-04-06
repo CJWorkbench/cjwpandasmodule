@@ -31,14 +31,14 @@ class DefaultSettings(Settings):
 
 
 def validate_series(series: pd.Series) -> None:
-    """Ensure `series` is Workbench-"valid", or raise ValueError.
+    """Ensure `series` is Workbench "Pandas-valid", or raise ValueError.
 
-    "Valid" means:
+    "Workbench Pandas-Valid" means:
 
     * If dtype is `object` or `categorical`, all values are `str`, `np.nan` or
       `None`
-    * Otherwise, series must be numeric (but not "nullable integer") or
-      datetime64[ns] (without timezone).
+    * Otherwise, series must be numeric (but not "nullable integer"), period[D]
+      or datetime64[ns] (without timezone).
     """
     dtype = series.dtype
     if dtype in SupportedNumberDtypes:
@@ -53,13 +53,6 @@ def validate_series(series: pd.Series) -> None:
     elif is_datetime64_dtype(dtype):  # rejects datetime64ns
         return
     elif pd.PeriodDtype(freq="D") == dtype:
-        invalid = series.lt("0001-01-01") | series.gt("9999-12-31")
-        if invalid.any():
-            idx = series[invalid].index[0]
-            raise ValueError(
-                "invalid value %r in column %r, row %r (date must be between 0001-01-01 and 9999-12-31)"
-                % (series[idx], series.name, idx)
-            )
         return
     elif dtype == object:
         nonstr = series[~series.isnull()].map(type) != str
@@ -115,18 +108,15 @@ def validate_series(series: pd.Series) -> None:
 def validate_dataframe(
     df: pd.DataFrame, settings: Settings = DefaultSettings()
 ) -> None:
-    """Ensure `df` is Workbench-"valid", or raise ValueError.
+    """Ensure `df` is Workbench "Pandas-valid", or raise ValueError.
 
-    "Valid" means:
+    "Workbench Pandas-Valid" means:
 
     * All column names are str
     * All column names are unique
     * No column names are ""
     * The index is a RangeIndex starting at 0
-    * If a column is `object` or `categorical`, all values are `str`, `np.nan`
-      or `None`
-    * Otherwise, a column must be numeric (but not "nullable integer") or
-      datetime (without timezone).
+    * All columns are "Pandas-valid".
 
     The ValueError is not i18n-ized. These errors are targeted at people who
     programmed buggy Python code. Python is English-only.

@@ -81,26 +81,6 @@ def test_period_dtype():
     validate_dataframe(dataframe)
 
 
-def test_period_range_min_year_0001():
-    # -0001-12-31
-    dataframe = pd.DataFrame({"A": pd.PeriodIndex(["0001-01-01"], freq="D") - 1})
-    with pytest.raises(
-        ValueError,
-        match=r"invalid value Period\('0-12-31', 'D'\) in column 'A', row 0 \(date must be between 0001-01-01 and 9999-12-31\)",
-    ):
-        validate_dataframe(dataframe)
-
-
-def test_period_range_min_year_9999():
-    # -0001-12-31
-    dataframe = pd.DataFrame({"A": pd.PeriodIndex(["9999-12-31"], freq="D") + 1})
-    with pytest.raises(
-        ValueError,
-        match=r"invalid value Period\('10000-01-01', 'D'\) in column 'A', row 0 \(date must be between 0001-01-01 and 9999-12-31\)",
-    ):
-        validate_dataframe(dataframe)
-
-
 def test_period_dtype_freq_not_D():
     dataframe = pd.DataFrame(
         {
