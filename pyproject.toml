@@ -12,8 +12,8 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 pandas = "~=0.25.0"
-python = "~=3.8"
-cjwmodule = "~=3.1"
+python = "~=3.8.0"
+cjwmodule = "~=4.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "~=6.0"
